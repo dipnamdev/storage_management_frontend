@@ -1,18 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
 import api from '../api';
+import { useToast } from '../context/ToastContext';
 
 const Commodities = () => {
   const [commodities, setCommodities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const { showToast } = useToast();
   
   const initialFormState = {
     commodityData: { name: '' },
     priceData: { financial_year: '2023-24', price_per_unit: '' }
   };
   const [formData, setFormData] = useState(initialFormState);
+  
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmText: 'Confirm'
+  });
 
   useEffect(() => {
     fetchCommodities();
@@ -37,7 +48,7 @@ const Commodities = () => {
   };
 
   const openEditModal = (item) => {
-    setEditingId(item.id);
+    setEditingId(item.commodity_id); // The update API needs the commodity_id
     setFormData({
       commodityData: { name: item.name },
       priceData: { financial_year: item.financial_year || '2023-24', price_per_unit: item.price_per_unit || '' }
@@ -45,35 +56,74 @@ const Commodities = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this commodity?')) {
-      try {
-        await api.delete(`/commodity/${id}`);
-        fetchCommodities();
-      } catch (err) {
-        alert(err.response?.data?.error || 'Failed to delete commodity');
+  const handleDelete = (priceId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Commodity Price',
+      message: 'Are you sure you want to delete this price entry? This action cannot be undone.',
+      confirmText: 'Delete',
+      onConfirm: async () => {
+        try {
+          await api.delete(`/commodity/${priceId}`);
+          showToast('Commodity deleted successfully', 'success');
+          fetchCommodities();
+        } catch (err) {
+          showToast(err.response?.data?.error || 'Failed to delete commodity', 'error');
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
       }
-    }
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingId) {
-        // Prepare PUT payload
+        // ... (existing PUT logic stays the same)
         const payload = {
           name: formData.commodityData.name,
           financial_year: formData.priceData.financial_year,
           price_per_unit: formData.priceData.price_per_unit
         };
         await api.put(`/commodity/${editingId}`, payload);
+        showToast('Commodity updated successfully', 'success');
+        setIsModalOpen(false);
+        fetchCommodities();
       } else {
-        await api.post('/commodity/add', formData);
+        // Check if price already exists for this year
+        const existing = commodities.find(c => 
+          c.name.toLowerCase() === formData.commodityData.name.toLowerCase() && 
+          c.financial_year === formData.priceData.financial_year
+        );
+
+        const performAdd = async () => {
+          try {
+            await api.post('/commodity/add', formData);
+            showToast('Commodity saved successfully', 'success');
+            setIsModalOpen(false);
+            fetchCommodities();
+          } catch (err) {
+            showToast(err.response?.data?.error || 'Failed to save commodity', 'error');
+          }
+        };
+
+        if (existing) {
+          setConfirmModal({
+            isOpen: true,
+            title: 'Confirm Update',
+            message: `${formData.commodityData.name} already has a price for ${formData.priceData.financial_year}. Do you want to update it?`,
+            confirmText: 'Update',
+            onConfirm: () => {
+              performAdd();
+              setConfirmModal(prev => ({ ...prev, isOpen: false }));
+            }
+          });
+        } else {
+          await performAdd();
+        }
       }
-      setIsModalOpen(false);
-      fetchCommodities();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to save commodity');
+      showToast(err.response?.data?.error || 'Failed to save commodity', 'error');
     }
   };
 
@@ -107,7 +157,7 @@ const Commodities = () => {
               ) : commodities.length === 0 ? (
                 <tr><td colSpan="4" style={{ textAlign: 'center', padding: '40px' }}>No commodities found</td></tr>
               ) : commodities.map((item) => (
-                <tr key={item.id}>
+                <tr key={item.price_id}>
                   <td className="fw-500">{item.name}</td>
                   <td>{item.financial_year}</td>
                   <td>₹{item.price_per_unit}</td>
@@ -116,7 +166,7 @@ const Commodities = () => {
                       <button className="icon-btn" title="Edit" onClick={() => openEditModal(item)}>
                         <Edit2 size={16} />
                       </button>
-                      <button className="icon-btn text-danger" title="Delete" onClick={() => handleDelete(item.id)}>
+                      <button className="icon-btn text-danger" title="Delete" onClick={() => handleDelete(item.price_id)}>
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -175,6 +225,42 @@ const Commodities = () => {
                 <button type="submit" className="btn btn-primary">{editingId ? 'Save Changes' : 'Save Commodity'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">{confirmModal.title}</h2>
+              <button 
+                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} 
+                className="close-btn"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div style={{ padding: '0 24px 24px' }}>
+              <p style={{ color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                {confirmModal.message}
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+              >
+                Cancel
+              </button>
+              <button 
+                className={`btn ${confirmModal.confirmText === 'Delete' ? 'btn-danger' : 'btn-primary'}`}
+                onClick={confirmModal.onConfirm}
+              >
+                {confirmModal.confirmText}
+              </button>
+            </div>
           </div>
         </div>
       )}

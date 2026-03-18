@@ -21,7 +21,7 @@ const Sidebar = ({ onLogout }) => {
   const adminItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/admin/dashboard' },
     { name: 'Warehouse', icon: <Warehouse size={20} />, path: '/admin/warehouses' },
-    { name: 'Claims', icon: <FileText size={20} />, path: '/admin/claims' },
+    { name: 'Warehouse Bills', icon: <FileText size={20} />, path: '/admin/warehouse-bills' },
     { name: 'Commodity', icon: <Box size={20} />, path: '/admin/commodities' },
     { name: 'Reports', icon: <BarChart2 size={20} />, path: '/admin/reports' },
     { name: 'Profile', icon: <User size={20} />, path: '/admin/profile' },
@@ -29,9 +29,7 @@ const Sidebar = ({ onLogout }) => {
 
   const managerItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/manager/dashboard' },
-    { name: 'Submit Claim', icon: <Plus size={20} />, path: '/manager/claims/submit' },
-    { name: 'My Claims', icon: <FileText size={20} />, path: '/manager/claims' },
-    { name: 'Commodities', icon: <Box size={20} />, path: '/manager/commodities' },
+    { name: 'Claim List', icon: <FileText size={20} />, path: '/manager/warehouse-bills' },
     { name: 'Profile', icon: <User size={20} />, path: '/manager/profile' },
   ];
 

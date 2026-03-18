@@ -7,10 +7,14 @@ import Warehouses from './pages/Warehouses';
 import AddWarehouse from './pages/AddWarehouse';
 import EditWarehouse from './pages/EditWarehouse';
 import Commodities from './pages/Commodities';
-import Claims from './pages/Claims';
+import WarehouseBills from './pages/WarehouseBills';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import SubmitClaim from './pages/SubmitClaim';
+import EditClaim from './pages/EditClaim';
+import BillDetails from "./pages/BillDetails";
+
+import { ToastProvider } from './context/ToastContext';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -37,10 +41,11 @@ function App() {
   const isAuthenticated = !!token;
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login/admin" element={<LoginPage role="ADMIN" onLogin={login} />} />
-        <Route path="/login/manager" element={<LoginPage role="MANAGER" onLogin={login} />} />
+    <ToastProvider>
+      <Router>
+        <Routes>
+          <Route path="/login/admin" element={<LoginPage role="ADMIN" onLogin={login} />} />
+          <Route path="/login/manager" element={<LoginPage role="MANAGER" onLogin={login} />} />
         
         {/* Admin Routes */}
         <Route path="/admin/*" element={
@@ -51,10 +56,11 @@ function App() {
                 <Route path="warehouses" element={<Warehouses />} />
                 <Route path="warehouses/add" element={<AddWarehouse />} />
                 <Route path="warehouses/edit/:id" element={<EditWarehouse />} />
-                <Route path="claims" element={<Claims />} />
+                <Route path="warehouse-bills" element={<WarehouseBills />} />
                 <Route path="commodities" element={<Commodities />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="bills/:id" element={<BillDetails />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </Layout>
@@ -67,10 +73,12 @@ function App() {
             <Layout onLogout={logout}>
               <Routes>
                 <Route path="dashboard" element={<Dashboard isManager={true} />} />
-                <Route path="claims" element={<Claims isManager={true} />} />
-                <Route path="claims/submit" element={<SubmitClaim />} />
+                <Route path="warehouse-bills" element={<WarehouseBills isManager={true} />} />
+                <Route path="warehouse-bills/submit" element={<SubmitClaim />} />
+                <Route path="warehouse-bills/edit/:id" element={<EditClaim />} />
                 <Route path="commodities" element={<Commodities />} />
                 <Route path="profile" element={<Profile />} />
+                <Route path="bills/:id" element={<BillDetails />} />
                 <Route path="*" element={<Navigate to="dashboard" replace />} />
               </Routes>
             </Layout>
@@ -82,6 +90,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
+    </ToastProvider>
   );
 }
 

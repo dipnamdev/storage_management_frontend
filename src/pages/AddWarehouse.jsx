@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import api from '../api';
+import { useToast } from '../context/ToastContext';
 
 const AddWarehouse = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     warehouseData: {
@@ -42,9 +44,10 @@ const AddWarehouse = () => {
     setLoading(true);
     try {
       await api.post('/warehouse/create', formData);
+      showToast('Warehouse added successfully', 'success');
       navigate('/admin/warehouses');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to add warehouse');
+      showToast(err.response?.data?.error || 'Failed to add warehouse', 'error');
     } finally {
       setLoading(false);
     }

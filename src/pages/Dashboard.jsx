@@ -24,10 +24,10 @@ const Dashboard = ({ isManager }) => {
   useEffect(() => {
     const rawStats = [
       { label: 'Total Warehouses', value: isManager ? '1' : '12', icon: <Warehouse />, color: 'var(--primary)', hideForManager: true },
-      { label: 'Total Claims', value: isManager ? '25' : '156', icon: <FileText />, color: '#6366f1' },
+      { label: 'Total Bills', value: isManager ? '25' : '156', icon: <FileText />, color: '#6366f1' },
       { label: 'Pending Approvals', value: isManager ? '5' : '24', icon: <Clock />, color: '#f59e0b' },
-      { label: 'Approved Claims', value: isManager ? '15' : '120', icon: <CheckCircle2 />, color: '#10b981' },
-      { label: 'Rejected Claims', value: isManager ? '5' : '12', icon: <XCircle />, color: '#ef4444' },
+      { label: 'Approved Bills', value: isManager ? '15' : '120', icon: <CheckCircle2 />, color: '#10b981' },
+      { label: 'Rejected Bills', value: isManager ? '5' : '12', icon: <XCircle />, color: '#ef4444' },
     ];
     setStats(isManager ? rawStats.filter(s => !s.hideForManager) : rawStats);
   }, [isManager]);
@@ -40,11 +40,11 @@ const Dashboard = ({ isManager }) => {
     { name: 'WH-05', claims: 18 },
   ];
 
-  const recentClaims = [
-    { id: 'CLM-001', warehouse: 'Main Station', commodity: 'Rice', status: 'Approved', date: '2024-03-10' },
-    { id: 'CLM-002', warehouse: 'West Wing', commodity: 'Wheat', status: 'Pending', date: '2024-03-12' },
-    { id: 'CLM-003', warehouse: 'North Store', commodity: 'Maize', status: 'Rejected', date: '2024-03-14' },
-    { id: 'CLM-004', warehouse: 'East Hub', commodity: 'Rice', status: 'Approved', date: '2024-03-15' },
+  const recentBills = [
+    { id: 'BILL-001', warehouse: 'Main Station', commodity: 'Rice', status: 'Approved', date: '2024-03-10' },
+    { id: 'BILL-002', warehouse: 'West Wing', commodity: 'Wheat', status: 'Pending', date: '2024-03-12' },
+    { id: 'BILL-003', warehouse: 'North Store', commodity: 'Maize', status: 'Rejected', date: '2024-03-14' },
+    { id: 'BILL-004', warehouse: 'East Hub', commodity: 'Rice', status: 'Approved', date: '2024-03-15' },
   ];
 
   return (
@@ -95,30 +95,30 @@ const Dashboard = ({ isManager }) => {
 
         <div className="card table-card" style={{ gridColumn: isManager ? 'span 2' : 'unset' }}>
           <div className="card-header">
-            <h3>Recent Claims</h3>
+            <h3>Recent Bills</h3>
             <button className="text-btn">View All</button>
           </div>
           <div className="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Claim ID</th>
+                  <th>Bill ID</th>
                   {!isManager && <th>Warehouse</th>}
                   <th>Status</th>
                   <th>Date</th>
                 </tr>
               </thead>
               <tbody>
-                {recentClaims.map((claim) => (
-                  <tr key={claim.id}>
-                    <td className="fw-500">{claim.id}</td>
-                    {!isManager && <td>{claim.warehouse}</td>}
+                {recentBills.map((bill) => (
+                  <tr key={bill.id}>
+                    <td className="fw-500">{bill.id}</td>
+                    {!isManager && <td>{bill.warehouse}</td>}
                     <td>
-                      <span className={`badge badge-${claim.status.toLowerCase()}`}>
-                        {claim.status}
+                      <span className={`badge badge-${bill.status.toLowerCase()}`}>
+                        {bill.status}
                       </span>
                     </td>
-                    <td>{claim.date}</td>
+                    <td>{bill.date}</td>
                   </tr>
                 ))}
               </tbody>

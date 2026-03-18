@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Save } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 const Profile = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     first_name: user.first_name || 'Admin',
     last_name: user.last_name || 'User',
@@ -14,7 +16,7 @@ const Profile = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('Profile updated successfully (Mock)');
+    showToast('Profile updated successfully (Mock)', 'success');
   };
 
   return (

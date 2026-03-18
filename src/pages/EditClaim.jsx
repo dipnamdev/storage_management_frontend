@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import api from '../api';
 import { useToast } from '../context/ToastContext';
 
-const SubmitClaim = () => {
+const EditClaim = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [commodities, setCommodities] = useState([]);
   
   const financialYears = (() => {
@@ -21,7 +23,6 @@ const SubmitClaim = () => {
     return years;
   })();
 
-  // Aligning with POST /billing/add requirements
   const [formData, setFormData] = useState({
     depositor_name: '',
     depositor_gst: '',
@@ -29,14 +30,13 @@ const SubmitClaim = () => {
     bill_no: '',
     claim_month: (new Date().getMonth() + 1).toString(),
     financial_year: '',
-    taxable_amount: '',
-    inbound_time: '',
-    outbound_time: ''
+    taxable_amount: ''
   });
 
   useEffect(() => {
     fetchCommodities();
-  }, []);
+    fetchBillDetails();
+  }, [id]);
 
   const fetchCommodities = async () => {
     try {
@@ -44,6 +44,30 @@ const SubmitClaim = () => {
       setCommodities(response.data.data || response.data);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const fetchBillDetails = async () => {
+    setFetching(true);
+    try {
+      const response = await api.get(`/billing/${id}`);
+      const data = response.data.data || response.data;
+      
+      // Pre-fill form
+      setFormData({
+        depositor_name: data.depositor_name || '',
+        depositor_gst: data.depositor_gst || '',
+        commodity_id: data.commodity_id || '',
+        bill_no: data.bill_no || '',
+        claim_month: data.claim_month || '',
+        financial_year: data.financial_year || '',
+        taxable_amount: data.taxable_amount || ''
+      });
+    } catch (err) {
+      showToast('Failed to load bill details. It might not exist.', 'error');
+      navigate('/manager/warehouse-bills');
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -55,15 +79,23 @@ const SubmitClaim = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.post('/billing/add', formData);
-      showToast('Bill submitted successfully', 'success');
+      await api.put(`/billing/${id}`, formData);
+      showToast('Edit request submitted successfully. It is now pending admin approval.', 'success');
       navigate('/manager/warehouse-bills');
     } catch (err) {
-      showToast(err.response?.data?.error || 'Failed to submit bill', 'error');
+      showToast(err.response?.data?.error || 'Failed to submit edit request', 'error');
     } finally {
       setLoading(false);
     }
   };
+
+  if (fetching) {
+    return (
+      <div className="submit-claim-page" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <p>Loading bill details...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="submit-claim-page">
@@ -72,8 +104,8 @@ const SubmitClaim = () => {
           <ArrowLeft size={18} />
           Back to Claim List
         </button>
-        <h1>Submit New Bill</h1>
-        <p>Record a new warehouse bill to generate a claim request</p>
+        <h1>Edit Claim (Bill) #{id}</h1>
+        <p>Propose changes to this bill. Changes require admin approval.</p>
       </div>
 
       <div className="card" style={{ maxWidth: '800px' }}>
@@ -169,31 +201,9 @@ const SubmitClaim = () => {
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Inbound Time <span className="text-danger">*</span></label>
-              <input 
-                required 
-                type="datetime-local" 
-                name="inbound_time"
-                value={formData.inbound_time}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div className="form-group">
-              <label>Outbound Time</label>
-              <input 
-                type="datetime-local" 
-                name="outbound_time"
-                value={formData.outbound_time}
-                onChange={handleInputChange}
-              />
-            </div>
-          </div>
-
           <div className="form-actions" style={{ marginTop: '24px' }}>
             <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
-              {loading ? 'Submitting...' : 'Submit Claim'}
+              {loading ? 'Submitting...' : 'Submit Edit Request'}
             </button>
           </div>
         </form>
@@ -202,4 +212,4 @@ const SubmitClaim = () => {
   );
 };
 
-export default SubmitClaim;
+export default EditClaim;

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import api from '../api';
+import { useToast } from '../context/ToastContext';
 
 const EditWarehouse = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -42,7 +44,7 @@ const EditWarehouse = () => {
         warehouse_owner: data.warehouse_owner || ''
       });
     } catch (err) {
-      alert('Failed to fetch warehouse details');
+      showToast('Failed to fetch warehouse details', 'error');
       navigate('/admin/warehouses');
     } finally {
       setLoading(false);
@@ -61,9 +63,10 @@ const EditWarehouse = () => {
     setSaving(true);
     try {
       await api.put(`/warehouse/update/${id}`, formData);
+      showToast('Warehouse updated successfully', 'success');
       navigate('/admin/warehouses');
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to update warehouse');
+      showToast(err.response?.data?.error || 'Failed to update warehouse', 'error');
     } finally {
       setSaving(false);
     }

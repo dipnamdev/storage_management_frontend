@@ -27,7 +27,7 @@ const SubmitClaim = () => {
     depositor_gst: '',
     commodity_id: '',
     bill_no: '',
-    claim_month: (new Date().getMonth() + 1).toString(),
+    claim_month: (new Date().getMonth() + 1),
     financial_year: '',
     taxable_amount: '',
     inbound_time: '',
@@ -111,7 +111,7 @@ const SubmitClaim = () => {
               >
                 <option value="">Select a commodity</option>
                 {commodities.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.commodity_id} value={c.commodity_id}>{c.name} ({c.financial_year})</option>
                 ))}
               </select>
             </div>
@@ -167,23 +167,57 @@ const SubmitClaim = () => {
                 onChange={handleInputChange}
               />
             </div>
+            <div className="form-group">
+              <label>SGST(9%) <span className="text-danger">*</span></label>
+              <input 
+                readOnly
+                type="number" 
+                step="0.01"
+                name="SGST"
+                value={(formData.taxable_amount*9)/100}
+                style={{ background: 'var(--bg-main)', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>CGST(9%) <span className="text-danger">*</span></label>
+              <input 
+                readOnly
+                type="number" 
+                step="0.01"
+                name="CGST"
+                value={(formData.taxable_amount*9)/100}
+                style={{ background: 'var(--bg-main)', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>Total Amount (Taxable Amount + SGST + CGST) <span className="text-danger">*</span></label>
+              <input 
+                readOnly
+                type="number" 
+                step="0.01"
+                name="total_amount"
+                value={  Number(formData.taxable_amount) +
+               (Number(formData.taxable_amount) * 18) / 100}
+                style={{ background: 'var(--bg-main)', cursor: 'not-allowed' }}
+              />
+            </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Inbound Time <span className="text-danger">*</span></label>
+              <label>Inbound Date <span className="text-danger">*</span></label>
               <input 
                 required 
-                type="datetime-local" 
+                type="date" 
                 name="inbound_time"
                 value={formData.inbound_time}
                 onChange={handleInputChange}
               />
             </div>
             <div className="form-group">
-              <label>Outbound Time</label>
+              <label>Outbound Date</label>
               <input 
-                type="datetime-local" 
+                type="date" 
                 name="outbound_time"
                 value={formData.outbound_time}
                 onChange={handleInputChange}

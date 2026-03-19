@@ -30,7 +30,9 @@ const EditClaim = () => {
     bill_no: '',
     claim_month: (new Date().getMonth() + 1).toString(),
     financial_year: '',
-    taxable_amount: ''
+    taxable_amount: '',
+    inbound_time: '',
+    outbound_time: ''
   });
 
   useEffect(() => {
@@ -61,7 +63,9 @@ const EditClaim = () => {
         bill_no: data.bill_no || '',
         claim_month: data.claim_month || '',
         financial_year: data.financial_year || '',
-        taxable_amount: data.taxable_amount || ''
+        taxable_amount: data.taxable_amount || '',
+        inbound_time: data.inbound_time ? data.inbound_time.split('T')[0] : '',
+        outbound_time: data.outbound_time ? data.outbound_time.split('T')[0] : ''
       });
     } catch (err) {
       showToast('Failed to load bill details. It might not exist.', 'error');
@@ -143,7 +147,7 @@ const EditClaim = () => {
               >
                 <option value="">Select a commodity</option>
                 {commodities.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.commodity_id} value={c.commodity_id}>{c.name} ({c.financial_year})</option>
                 ))}
               </select>
             </div>
@@ -196,6 +200,62 @@ const EditClaim = () => {
                 step="0.01"
                 name="taxable_amount"
                 value={formData.taxable_amount}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="form-group">
+              <label>SGST(9%) <span className="text-danger">*</span></label>
+              <input 
+                readOnly
+                type="number" 
+                step="0.01"
+                name="SGST"
+                value={(formData.taxable_amount*9)/100}
+                style={{ background: 'var(--bg-main)', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>CGST(9%) <span className="text-danger">*</span></label>
+              <input 
+                readOnly
+                type="number" 
+                step="0.01"
+                name="CGST"
+                value={(formData.taxable_amount*9)/100}
+                style={{ background: 'var(--bg-main)', cursor: 'not-allowed' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>Total Amount (Taxable Amount + SGST + CGST) <span className="text-danger">*</span></label>
+              <input 
+                readOnly
+                type="number" 
+                step="0.01"
+                name="total_amount"
+                value={  Number(formData.taxable_amount) +
+               (Number(formData.taxable_amount) * 18) / 100}
+                style={{ background: 'var(--bg-main)', cursor: 'not-allowed' }}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Inbound Date <span className="text-danger">*</span></label>
+              <input 
+                required 
+                type="date" 
+                name="inbound_time"
+                value={formData.inbound_time}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="form-group">
+              <label>Outbound Date</label>
+              <input 
+                type="date" 
+                name="outbound_time"
+                value={formData.outbound_time}
                 onChange={handleInputChange}
               />
             </div>
